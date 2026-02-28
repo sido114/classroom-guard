@@ -1,80 +1,318 @@
-# classroom-guard
+# Classroom Guard
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+A classroom management tool for Swiss schools that allows teachers to control iPad internet access in real-time during lessons.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## Tech Stack
 
-## Running the application in dev mode
+- **Backend:** Kotlin + Quarkus (Maven)
+- **Frontend:** TypeScript + Next.js (App Router)
+- **Database:** PostgreSQL
+- **Architecture:** Monorepo with Docker Compose orchestration
 
-You can run your application in dev mode that enables live coding using:
+## Prerequisites
 
-```shell script
+- **Java 21+** (for Quarkus backend)
+- **Node.js 20+** (for Next.js frontend)
+- **Docker & Docker Compose** (for full stack deployment)
+- **Maven** (included via `mvnw` wrapper)
+
+## Project Structure
+
+```
+classroom-guard/
+├── backend/              # Kotlin + Quarkus REST API
+│   ├── src/
+│   │   ├── main/kotlin/  # Application code
+│   │   └── test/kotlin/  # Tests
+│   └── pom.xml           # Maven dependencies
+├── frontend/             # Next.js TypeScript app
+│   ├── src/
+│   │   └── app/          # App Router pages
+│   └── package.json      # npm dependencies
+├── .kiro/                # Development workflow
+│   ├── specs/            # Feature specifications
+│   ├── steering/         # Project guidelines
+│   └── hooks/            # Automated testing hooks
+└── docker-compose.yml    # Full stack orchestration
+```
+
+## Quick Start
+
+### Option 1: Docker Compose (Recommended)
+
+Start the entire stack (backend + frontend + database):
+
+```bash
+docker-compose up --build
+```
+
+Access:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
+- Database: localhost:5432
+
+Stop everything:
+```bash
+docker-compose down
+```
+
+### Option 2: Local Development
+
+#### Backend (Quarkus)
+
+```bash
+cd backend
+
+# Run in dev mode (with live reload)
+./mvnw quarkus:dev
+
+# Run tests
+./mvnw test
+
+# Build
+./mvnw clean package
+```
+
+Backend runs at http://localhost:8080
+
+**Note:** Quarkus Dev Services automatically starts a PostgreSQL container for development. No manual database setup needed!
+
+#### Frontend (Next.js)
+
+```bash
+cd frontend
+
+# Install dependencies
+npm install
+
+# Run dev server
+npm run dev
+
+# Type check
+npx tsc --noEmit
+
+# Lint
+npm run lint
+
+# Build for production
+npm run build
+```
+
+Frontend runs at http://localhost:3000
+
+## Database Configuration
+
+### Development (Automatic with Dev Services)
+Quarkus Dev Services automatically provides PostgreSQL during development:
+```bash
+cd backend
 ./mvnw quarkus:dev
 ```
+- Automatically starts PostgreSQL container (postgres:15-alpine)
+- No manual database setup needed
+- Requires Docker to be running
+- Data is ephemeral (resets on restart)
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+### Testing (H2 In-Memory)
+Tests use H2 in-memory database (no Docker required):
+```bash
+cd backend
+./mvnw test
+```
+- Fast test execution
+- No external dependencies
+- Automatic cleanup between tests
 
-## Packaging and running the application
+### Production (Docker Compose)
+Database credentials are configured in `docker-compose.yml`:
+- **Database:** classroom_db
+- **User:** teacher
+- **Password:** securepassword
+- **Port:** 5432
 
-The application can be packaged using:
+Connection string: `jdbc:postgresql://localhost:5432/classroom_db`
 
-```shell script
-./mvnw package
+### Configuration Files
+- `backend/src/main/resources/application.properties` - Main config (Dev Services enabled)
+- `backend/src/test/resources/application.properties` - Test config (H2 override)
+
+## API Endpoints
+
+### Current Endpoints
+- `GET /hello` - Test endpoint (returns "Hello from Quarkus REST")
+
+### Planned Endpoints
+- `GET /api/sessions` - List all focus sessions
+- `POST /api/sessions` - Create new session
+- `PATCH /api/sessions/{id}` - Update session
+- `DELETE /api/sessions/{id}` - Delete session
+- `POST /api/sessions/{id}/students` - Add student to session
+
+See `.kiro/steering/api-conventions.md` for API design patterns.
+
+## Development Workflow
+
+This project uses **spec-driven development** for incremental feature building.
+
+### Creating a Feature
+
+1. **Write a spec** in `.kiro/specs/NNN-feature-name.md`:
+```markdown
+# Feature Name
+
+## Goal
+One sentence describing what we're building.
+
+## Acceptance Criteria
+- [ ] Criterion 1 (testable)
+- [ ] Criterion 2 (testable)
+
+## Technical Notes
+- Implementation hints
+- API endpoints
+- Database changes
 ```
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+2. **Implement the feature** following project conventions:
+   - API patterns: `.kiro/steering/api-conventions.md`
+   - Database patterns: `.kiro/steering/database-conventions.md`
+   - Testing standards: `.kiro/steering/testing-standards.md`
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+3. **Run tests** to verify:
+```bash
+# Backend
+cd backend && ./mvnw test
 
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
+# Frontend
+cd frontend && npx tsc --noEmit
 ```
 
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
+4. **Mark spec as done** by prefixing filename with `[DONE]`
 
-## Creating a native executable
+### Example Specs
+See `.kiro/specs/000-example-spec.md` for a template.
 
-You can create a native executable using:
+## Testing
 
-```shell script
-./mvnw package -Dnative
+### Backend Tests
+```bash
+cd backend
+./mvnw test                    # Run all tests
+./mvnw test -Dtest=MyTest      # Run specific test
+./mvnw verify                  # Run integration tests
 ```
 
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
+Tests use:
+- **JUnit 5** for test framework
+- **RestAssured** for API testing
+- **Quarkus Test** for integration testing
 
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
+### Frontend Tests
+```bash
+cd frontend
+npx tsc --noEmit              # Type checking
+npm run lint                  # Linting
+npm run build                 # Build verification
 ```
 
-You can then execute your native executable with: `./target/classroom-guard-1.0.0-SNAPSHOT-runner`
+### Automated Testing
+The project includes hooks that automatically run tests when files change:
+- Backend: Tests run when `.kt` files are saved
+- Frontend: Type checking runs when `.ts/.tsx` files are saved
 
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
+## Project Guidelines
 
-## Related Guides
+All development guidelines are in `.kiro/steering/`:
+- `project-identity.md` - Tech stack and environment
+- `product-vision.md` - Product goals and roadmap
+- `architecture.md` - System architecture
+- `api-conventions.md` - REST API patterns
+- `database-conventions.md` - Entity and database patterns
+- `kotlin-maven-standards.md` - Backend coding standards
+- `testing-standards.md` - Testing requirements
+- `spec-workflow.md` - Development workflow
 
-- REST ([guide](https://quarkus.io/guides/rest)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
-- REST Jackson ([guide](https://quarkus.io/guides/rest#json-serialisation)): Jackson serialization support for Quarkus REST. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it
-- Kotlin ([guide](https://quarkus.io/guides/kotlin)): Write your services in Kotlin
-- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplify your persistence code for Hibernate ORM via the active record or the repository pattern
-- JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
+## Building for Production
 
-## Provided Code
+### Backend
+```bash
+cd backend
+./mvnw clean package
+java -jar target/quarkus-app/quarkus-run.jar
+```
 
-### Hibernate ORM
+### Frontend
+```bash
+cd frontend
+npm run build
+npm start
+```
 
-Create your first JPA entity
+### Docker Images
+```bash
+# Build all services
+docker-compose build
 
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
+# Run in production mode
+docker-compose up -d
+```
 
+## Environment Variables
 
-[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
+### Backend
+- `QUARKUS_DATASOURCE_JDBC_URL` - Database connection string
+- `QUARKUS_DATASOURCE_USERNAME` - Database user
+- `QUARKUS_DATASOURCE_PASSWORD` - Database password
 
+### Frontend
+- `NEXT_PUBLIC_API_URL` - Backend API URL (default: http://localhost:8080)
 
-### REST
+## Troubleshooting
 
-Easily start your REST Web Services
+### Backend won't start
+- Check Java version: `java -version` (need 21+)
+- Check if port 8080 is available
+- Check database connection in `application.properties`
 
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
+### Frontend won't start
+- Check Node version: `node -v` (need 20+)
+- Run `npm install` to install dependencies
+- Check if port 3000 is available
+
+### Database connection issues
+- Ensure PostgreSQL is running (Docker Compose handles this)
+- Check credentials in `docker-compose.yml` and `application.properties`
+- For dev mode, Quarkus Dev Services handles database automatically
+
+### Tests failing
+- Ensure all dependencies are installed
+- Check that database is accessible
+- Run `./mvnw clean test` to clean and retest
+
+## Contributing
+
+1. Create a spec in `.kiro/specs/`
+2. Implement following project conventions
+3. Write tests for all new code
+4. Ensure all tests pass
+5. Update documentation as needed
+
+## License
+
+[Add your license here]
+
+## Product Vision
+
+Classroom Guard bridges the gap between static school internet filters and the dynamic needs of a 45-minute lesson. Teachers get a "Magic Button" to control iPad internet access in real-time, with students joining via QR code.
+
+**Current Phase:** NextDNS Bridge - Using NextDNS API for internet control
+**Future Phase:** Custom DNS engine for full control
+
+See `.kiro/steering/product-vision.md` for detailed roadmap.
+
+## Resources
+
+- [Quarkus Documentation](https://quarkus.io/guides/)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Kotlin Documentation](https://kotlinlang.org/docs/home.html)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)
