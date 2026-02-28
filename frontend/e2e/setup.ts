@@ -13,6 +13,7 @@ setup('wait for backend to be ready', async ({ request }) => {
         return
       }
     } catch (error) {
+      console.debug(error)
       console.log(`Waiting for backend... (${i + 1}/${maxRetries})`)
     }
     await new Promise(resolve => setTimeout(resolve, retryDelay))
