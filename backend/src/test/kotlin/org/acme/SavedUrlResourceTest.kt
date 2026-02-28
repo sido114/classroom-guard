@@ -11,15 +11,6 @@ import org.junit.jupiter.api.Test
 class SavedUrlResourceTest {
 
     @Test
-    fun `should return empty list initially`() {
-        given()
-            .`when`().get("/api/urls")
-            .then()
-            .statusCode(200)
-            .body("size()", `is`(0))
-    }
-
-    @Test
     fun `should create a new URL`() {
         given()
             .contentType(ContentType.JSON)

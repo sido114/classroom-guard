@@ -1,4 +1,4 @@
-## A basic GitHub Actions workflow for your Quarkus application.
+## CI workflow for Classroom Guard monorepo (Backend + Frontend)
 
 name: CI build
 
@@ -9,8 +9,12 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  backend:
+    name: Backend (Kotlin + Quarkus)
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v5
 
@@ -21,5 +25,34 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Build
+      - name: Build and Test Backend
         run: ./mvnw verify -B
+
+  frontend:
+    name: Frontend (TypeScript + Next.js)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+

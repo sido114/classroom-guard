@@ -1,236 +1,236 @@
-# Kiro's Responsibilities in Spec-Driven Development
+# Kiro's Responsibilities
 
-## When User Says "Implement spec XXX"
+## Spec-Driven Development
 
-### 1. Read the Spec
-- Locate `.kiro/specs/XXX-feature-name.md`
-- Parse the Goal, Acceptance Criteria, and Technical Notes
-- Understand what needs to be built
+When working on a spec (in `.kiro/specs/feature-name/`):
 
-### 2. Implement the Feature
-- Follow the technical notes
-- Apply all steering file conventions:
-  - API conventions for endpoints
-  - Database conventions for entities
-  - Kotlin standards for code style
-  - Testing standards for tests
+### 1. Read the Spec Files
+- `requirements.md` or `bugfix.md` - What we're building
+- `design.md` - How we're building it
+- `tasks.md` - Step-by-step implementation plan
+
+### 2. Implement Each Task
+- Follow conventions from steering files
 - Write minimal, focused code
 - Create tests alongside implementation
+- Update task status as you go
 
-### 3. Run Tests Automatically
-After implementation, ALWAYS run:
-
-#### Backend Changes
-```bash
-cd backend
-./mvnw clean test
-```
-- Report pass/fail status
-- Show any error messages
-- Suggest fixes if tests fail
-
-#### Frontend Changes
-```bash
-cd frontend
-npx tsc --noEmit
-```
-- Report type errors
-- Show compilation issues
-- Suggest fixes if needed
-
-#### Both Changed
-Run both test suites and report combined results.
-
-**Note:** Tests use H2 in-memory database (no Docker/PostgreSQL needed for testing)
-
-### 4. Verify Acceptance Criteria
-- Check each criterion against implementation
-- Mark completed criteria with [x]
-- Report which criteria are met
-- Identify any gaps
-
-### 5. Report Results
-Provide a concise summary:
-```
-✓ Session entity created
-✓ Tests pass (3/3)
-✓ All acceptance criteria met
-
-Ready for next spec!
-```
-
-## During Implementation
-
-### Follow Conventions
+### 3. Follow Conventions
 - **API**: Use patterns from `api-conventions.md`
 - **Database**: Use patterns from `database-conventions.md`
 - **Testing**: Use patterns from `testing-standards.md`
-- **Kotlin**: Use patterns from `kotlin-maven-standards.md`
+- **Kotlin**: Idiomatic Kotlin, clean code
 
-### Write Tests First (or Alongside)
-- Every endpoint needs a test
-- Every entity should be testable
-- Tests verify acceptance criteria
+### 4. Test Everything
+After implementation:
+- Backend: Check diagnostics, run tests if possible
+- Frontend: Check TypeScript compilation
+- Report any errors immediately
 
-### Keep It Minimal
-- Only implement what the spec requires
-- Don't add extra features
-- Don't over-engineer
-- Focus on acceptance criteria
+### 5. Keep It Minimal
+- Only implement what the task requires
+- No extra features
+- No over-engineering
+- Focus on the requirements
 
-## After Implementation
+## Code Quality Standards
 
-### Test Execution
-1. Run backend tests if .kt files changed
-2. Run frontend type check if .ts/.tsx files changed
-3. Report results immediately
-4. Don't proceed if tests fail
+### Backend (Kotlin)
+- Use EntityManager for database operations
+- Add `@Transactional` for write operations
+- Validate input before persisting
+- Return appropriate HTTP status codes
+- Handle errors gracefully
 
-### Fix Failures
-If tests fail:
-1. Read the error message
-2. Identify the issue
-3. Fix the code
-4. Re-run tests
-5. Confirm green before reporting complete
+### Frontend (TypeScript)
+- Define interfaces for all data types
+- Use environment variables for API URLs
+- Handle loading and error states
+- Type-safe fetch operations
 
-### Update Spec Status
-- Mark acceptance criteria as complete
-- Update spec filename if needed: `[DONE] 001-feature.md`
-- Suggest next spec to implement
+### Testing
+- Every endpoint needs tests
+- Test happy path and error cases
+- Tests should be isolated and fast
+- Use H2 for backend tests (automatic)
 
-## Testing Patterns
+## Common Patterns
 
-### Backend Test Template
+### Backend Entity
 ```kotlin
-@QuarkusTest
-class FeatureResourceTest {
+@Entity
+@Table(name = "saved_urls")
+class SavedUrl {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    var id: Long? = null
     
-    @Test
-    fun `should return 200 when valid request`() {
-        given()
-            .contentType(ContentType.JSON)
-        .`when`()
-            .get("/api/endpoint")
-        .then()
-            .statusCode(200)
+    @Column(nullable = false)
+    var url: String = ""
+    
+    @Column(name = "created_at", nullable = false)
+    var createdAt: LocalDateTime = LocalDateTime.now()
+}
+```
+
+### Backend Resource
+```kotlin
+@Path("/api/urls")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+class SavedUrlResource {
+    @Inject
+    lateinit var em: EntityManager
+    
+    @GET
+    fun list(): List<SavedUrl> {
+        return em.createQuery("SELECT s FROM SavedUrl s", SavedUrl::class.java).resultList
     }
     
-    @Test
-    fun `should return 404 when not found`() {
-        given()
-        .`when`()
-            .get("/api/endpoint/999")
-        .then()
-            .statusCode(404)
+    @POST
+    @Transactional
+    fun create(request: CreateUrlRequest): Response {
+        if (request.url.isBlank()) {
+            return Response.status(400)
+                .entity(mapOf("error" to "URL cannot be empty"))
+                .build()
+        }
+        val entity = SavedUrl()
+        entity.url = request.url
+        em.persist(entity)
+        return Response.status(201).entity(entity).build()
     }
 }
 ```
 
-### Frontend Type Check
-```bash
-npx tsc --noEmit
+### Backend Test
+```kotlin
+@QuarkusTest
+class SavedUrlResourceTest {
+    @Test
+    fun `should return empty list initially`() {
+        given()
+            .`when`().get("/api/urls")
+            .then()
+            .statusCode(200)
+            .body("size()", `is`(0))
+    }
+    
+    @Test
+    fun `should create a new URL`() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("""{"url": "https://example.com"}""")
+            .`when`().post("/api/urls")
+            .then()
+            .statusCode(201)
+            .body("url", `is`("https://example.com"))
+    }
+    
+    @Test
+    fun `should return 400 when URL is empty`() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("""{"url": ""}""")
+            .`when`().post("/api/urls")
+            .then()
+            .statusCode(400)
+    }
+}
 ```
-- Must pass with zero errors
-- Fix any type issues before marking complete
 
-## Common Scenarios
+### Frontend Component
+```typescript
+'use client'
+import { useEffect, useState } from 'react'
 
-### Scenario: Backend Endpoint Spec
-1. Create entity (if needed)
-2. Create resource class
-3. Add endpoint method
-4. Create test class
-5. Add test methods
-6. Run `./mvnw test`
-7. Report results
+interface SavedUrl {
+  id: number
+  url: string
+  createdAt: string
+}
 
-### Scenario: Frontend Component Spec
-1. Create component file
-2. Add TypeScript types
-3. Implement component
-4. Run `npx tsc --noEmit`
-5. Run `npm run build`
-6. Report results
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
-### Scenario: Database Entity Spec
-1. Create entity class
-2. Add Panache companion
-3. Configure table/columns
-4. Update application.properties if needed
-5. Run `./mvnw test`
-6. Verify entity works
+export default function Dashboard() {
+  const [urls, setUrls] = useState<SavedUrl[]>([])
+  const [inputUrl, setInputUrl] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const fetchUrls = async () => {
+    const res = await fetch(`${API_URL}/api/urls`)
+    if (res.ok) {
+      setUrls(await res.json())
+    }
+  }
+
+  useEffect(() => {
+    fetchUrls()
+  }, [])
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!inputUrl.trim()) return
+    
+    setLoading(true)
+    const res = await fetch(`${API_URL}/api/urls`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: inputUrl })
+    })
+    
+    if (res.ok) {
+      setInputUrl('')
+      await fetchUrls()
+    }
+    setLoading(false)
+  }
+
+  return (
+    <main>
+      <form onSubmit={handleSave}>
+        <input
+          value={inputUrl}
+          onChange={(e) => setInputUrl(e.target.value)}
+          disabled={loading}
+        />
+        <button type="submit" disabled={loading}>
+          Save
+        </button>
+      </form>
+      
+      {urls.length === 0 ? (
+        <p>No URLs saved yet</p>
+      ) : (
+        <ul>
+          {urls.map((item) => (
+            <li key={item.id}>{item.url}</li>
+          ))}
+        </ul>
+      )}
+    </main>
+  )
+}
+```
 
 ## Error Handling
 
 ### When Tests Fail
-1. **Don't panic** - Read the error
-2. **Identify root cause** - Is it code or test?
-3. **Fix the issue** - Usually fix code, not test
-4. **Re-run** - Confirm fix works
-5. **Report** - Explain what was wrong and how it was fixed
+1. Read the error message
+2. Identify the root cause
+3. Fix the code
+4. Re-run tests
+5. Report results
 
-### When Spec is Unclear
-1. **Ask for clarification** - Don't guess
-2. **Suggest improvements** - Help make spec clearer
-3. **Propose acceptance criteria** - If missing
+### When Requirements Unclear
+1. Ask for clarification
+2. Don't guess
+3. Suggest improvements to the spec
 
-### When Dependencies Missing
-1. **Identify the blocker** - What's needed?
-2. **Suggest prerequisite spec** - What should be built first?
-3. **Mark as [BLOCKED]** - Update spec status
+## Communication
 
-## Quality Standards
-
-### Code Quality
-- Idiomatic Kotlin
-- Type-safe TypeScript
-- No compiler warnings
-- Clean, readable code
-
-### Test Quality
-- Tests verify acceptance criteria
-- Tests are deterministic
-- Tests are isolated
-- Tests are fast
-
-### Documentation Quality
-- Code comments where needed
-- API endpoints documented
-- Complex logic explained
-- Steering files updated
-
-## Communication Style
-
-### Be Concise
-- Short, clear status updates
-- No unnecessary verbosity
-- Focus on results
-
-### Be Helpful
+- Be concise
+- Report progress clearly
+- Explain failures
 - Suggest next steps
-- Offer improvements
-- Explain failures clearly
-
-### Be Proactive
-- Run tests without being asked
-- Catch issues early
-- Suggest better approaches
-
-## Success Criteria
-
-A spec is complete when:
-- ✓ All acceptance criteria met
-- ✓ All tests pass
-- ✓ No type errors
-- ✓ Code follows conventions
-- ✓ Documentation updated
-- ✓ Ready for next spec
-
-## Remember
-
-- **Small iterations** - One spec at a time
-- **Test everything** - No untested code
-- **Follow conventions** - Consistency matters
-- **Report clearly** - User needs to know status
-- **Fix immediately** - Don't accumulate debt
+- No unnecessary verbosity

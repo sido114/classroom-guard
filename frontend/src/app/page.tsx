@@ -1,105 +1,49 @@
 'use client'
-import { useEffect, useState } from 'react'
-
-interface SavedUrl {
-  id: number
-  url: string
-  createdAt: string
-}
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+import Link from 'next/link'
 
 export default function Home() {
-  const [urls, setUrls] = useState<SavedUrl[]>([])
-  const [inputUrl, setInputUrl] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const fetchUrls = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/urls`)
-      if (res.ok) {
-        const data = await res.json()
-        setUrls(data)
-      }
-    } catch (error) {
-      console.error('Failed to fetch URLs:', error)
-    }
-  }
-
-  useEffect(() => {
-    fetchUrls()
-  }, [])
-
-  const handleSaveUrl = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!inputUrl.trim()) return
-
-    setLoading(true)
-    try {
-      const res = await fetch(`${API_URL}/api/urls`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: inputUrl })
-      })
-
-      if (res.ok) {
-        setInputUrl('')
-        await fetchUrls()
-      }
-    } catch (error) {
-      console.error('Failed to save URL:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
   return (
-    <main className="p-24">
-      <h1 className="text-4xl font-bold mb-8">URL Dashboard</h1>
-
-      <form onSubmit={handleSaveUrl} className="mb-8">
-        <div className="flex gap-4">
-          <input
-            type="text"
-            value={inputUrl}
-            onChange={(e) => setInputUrl(e.target.value)}
-            placeholder="Enter URL..."
-            className="flex-1 px-4 py-2 border rounded"
-            disabled={loading}
-          />
-          <button
-            type="submit"
-            disabled={loading || !inputUrl.trim()}
-            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
-          >
-            {loading ? 'Saving...' : 'Save URL'}
-          </button>
+    <main className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+      <div className="max-w-4xl w-full">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4 text-gray-900">Classroom Guard</h1>
+          <p className="text-xl text-gray-700">
+            Manage classroom internet access for Swiss schools
+          </p>
         </div>
-      </form>
 
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">Saved URLs</h2>
-        {urls.length === 0 ? (
-          <p className="text-gray-500">No URLs saved yet</p>
-        ) : (
-          <ul className="space-y-2">
-            {urls.map((item) => (
-              <li key={item.id} className="p-4 border rounded">
-                <a
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-600 hover:underline"
-                >
-                  {item.url}
-                </a>
-                <p className="text-sm text-gray-500 mt-1">
-                  Saved: {new Date(item.createdAt).toLocaleString()}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+        <div className="grid md:grid-cols-2 gap-6">
+          <Link
+            href="/classrooms"
+            className="bg-white border-2 border-blue-600 rounded-lg p-8 hover:shadow-lg transition-shadow cursor-pointer"
+          >
+            <h2 className="text-2xl font-semibold mb-3 text-blue-600">
+              Classroom Management
+            </h2>
+            <p className="text-gray-700 mb-4">
+              Create and manage classrooms with custom URL whitelists for controlled internet access.
+            </p>
+            <span className="text-blue-600 font-medium">
+              Go to Classrooms →
+            </span>
+          </Link>
+
+          <div className="bg-white border-2 border-gray-300 rounded-lg p-8 opacity-60">
+            <h2 className="text-2xl font-semibold mb-3 text-gray-700">
+              Session Control
+            </h2>
+            <p className="text-gray-700 mb-4">
+              Start focus sessions and control student device access in real-time.
+            </p>
+            <span className="text-gray-500 font-medium">
+              Coming Soon
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-12 text-center text-gray-600 text-sm">
+          <p>Swiss EdTech Solution • Phase 1: Classroom URL Management</p>
+        </div>
       </div>
     </main>
   )
