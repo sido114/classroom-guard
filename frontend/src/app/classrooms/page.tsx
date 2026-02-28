@@ -71,10 +71,10 @@ export default function ClassroomsPage() {
         {classrooms.length === 0 ? (
           <div className="text-center py-12">
             <p className="text-gray-700 mb-4">
-              You haven't created any classrooms yet.
+              You haven&apos;t created any classrooms yet.
             </p>
             <p className="text-gray-600 text-sm">
-              Click "Create Classroom" to get started managing your class URLs.
+              Click &quot;Create Classroom&quot; to get started managing your class URLs.
             </p>
           </div>
         ) : (

@@ -199,13 +199,13 @@ See `.kiro/specs/000-example-spec.md` for a template.
 cd backend
 ./mvnw test                    # Run all tests
 ./mvnw test -Dtest=MyTest      # Run specific test
-./mvnw verify                  # Run integration tests
 ```
 
 Tests use:
 - **JUnit 5** for test framework
 - **RestAssured** for API testing
 - **Quarkus Test** for integration testing
+- **H2 in-memory database** for test isolation
 
 ### Frontend Tests
 ```bash
@@ -215,10 +215,55 @@ npm run lint                  # Linting
 npm run build                 # Build verification
 ```
 
-### Automated Testing
-The project includes hooks that automatically run tests when files change:
-- Backend: Tests run when `.kt` files are saved
-- Frontend: Type checking runs when `.ts/.tsx` files are saved
+### Pre-commit Hooks
+
+Set up Git hooks to run checks before every commit:
+
+```bash
+# One-time setup
+bash setup-hooks.sh
+```
+
+This configures Git to automatically run:
+- **Frontend:** ESLint + TypeScript type checking
+- **Backend:** Maven tests
+
+To skip hooks (not recommended):
+```bash
+git commit --no-verify
+```
+
+### CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration:
+
+**On every push/PR:**
+- Backend: Builds and runs all tests with Maven
+- Frontend: Type checks, lints, and builds with npm
+
+**Pipeline configuration:** `.github/workflows/ci.yml`
+
+Both jobs run in parallel. The pipeline fails if either backend tests or frontend build fails.
+
+### Integration Testing
+
+Currently, integration tests are manual. To test the full stack:
+
+```bash
+# Start all services
+docker-compose up -d
+
+# Test backend API
+curl http://localhost:8080/api/classrooms
+
+# Test frontend
+open http://localhost:3000
+
+# Stop services
+docker-compose down
+```
+
+**Future:** Automated E2E tests with Playwright/Cypress will be added in a future phase.
 
 ## Project Guidelines
 

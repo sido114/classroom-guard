@@ -1,0 +1,62 @@
+#!/bin/bash
+# Pre-commit hook for Classroom Guard
+# Runs linting and type checking before allowing commits
+
+set -e
+
+echo "🔍 Running pre-commit checks..."
+
+# Check if we're in the root directory
+if [ ! -d "frontend" ] || [ ! -d "backend" ]; then
+    echo "❌ Error: Must run from project root"
+    exit 1
+fi
+
+# Frontend checks
+echo ""
+echo "📦 Frontend checks..."
+cd frontend
+
+# Check if node_modules exists
+if [ ! -d "node_modules" ]; then
+    echo "⚠️  node_modules not found, skipping frontend checks"
+else
+    # Run ESLint
+    echo "  → Running ESLint..."
+    npm run lint || {
+        echo "❌ ESLint failed! Fix errors before committing."
+        exit 1
+    }
+
+    # Run TypeScript type check
+    echo "  → Running TypeScript check..."
+    npx tsc --noEmit || {
+        echo "❌ TypeScript errors found! Fix errors before committing."
+        exit 1
+    }
+fi
+
+cd ..
+
+# Backend checks
+echo ""
+echo "🔧 Backend checks..."
+cd backend
+
+# Check if mvnw exists
+if [ ! -f "mvnw" ]; then
+    echo "⚠️  mvnw not found, skipping backend checks"
+else
+    # Run backend tests
+    echo "  → Running backend tests..."
+    ./mvnw test -q || {
+        echo "❌ Backend tests failed! Fix tests before committing."
+        exit 1
+    }
+fi
+
+cd ..
+
+echo ""
+echo "✅ All pre-commit checks passed!"
+exit 0

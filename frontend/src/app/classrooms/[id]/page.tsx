@@ -20,6 +20,7 @@ export default function ClassroomDetailPage({ params }: { params: Promise<{ id: 
 
   useEffect(() => {
     loadClassroom()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [classroomId])
 
   const loadClassroom = async () => {
