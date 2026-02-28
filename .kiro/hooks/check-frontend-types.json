@@ -1,0 +1,13 @@
+{
+  "name": "Check Frontend Types",
+  "version": "1.0.0",
+  "description": "Type-check frontend when TypeScript files are modified",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["frontend/src/**/*.ts", "frontend/src/**/*.tsx"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A TypeScript file was modified. Run 'npx tsc --noEmit' in the frontend directory to check for type errors. Report any issues found."
+  }
+}

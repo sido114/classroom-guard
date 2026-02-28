@@ -1,0 +1,13 @@
+{
+  "name": "Test Backend After Edit",
+  "version": "1.0.0",
+  "description": "Automatically run backend tests when Kotlin files are modified",
+  "when": {
+    "type": "fileEdited",
+    "patterns": ["backend/src/main/kotlin/**/*.kt"]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A Kotlin backend file was just modified. Run './mvnw test' in the backend directory to verify all tests still pass. Report the results concisely."
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "Test After Spec Task",
+  "version": "1.0.0",
+  "description": "Run comprehensive tests after completing a spec task",
+  "when": {
+    "type": "postTaskExecution"
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "A spec task was just completed. Run the following tests: 1) Backend: './mvnw test' in backend/, 2) Frontend: 'npx tsc --noEmit' in frontend/. Report results and confirm all acceptance criteria are met."
+  }
+}
