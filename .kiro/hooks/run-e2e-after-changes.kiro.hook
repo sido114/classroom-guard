@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "name": "Run E2E Tests After Changes",
+  "description": "Automatically runs E2E tests when E2E test files are modified or when spec tasks are completed to ensure full stack integration works",
+  "version": "1",
+  "when": {
+    "type": "fileEdited",
+    "patterns": [
+      "frontend/e2e/*.spec.ts",
+      ".kiro/specs/*/tasks.md"
+    ]
+  },
+  "then": {
+    "type": "askAgent",
+    "prompt": "When E2E test files edited or all tasks completed. Run the E2E tests using 'bash test-e2e.sh' to verify the full stack integration is working correctly. Report the results."
+  }
+}

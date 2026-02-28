@@ -5,7 +5,7 @@ import type { CreateClassroomRequest } from '@/types/classroom'
 import { useState } from 'react'
 
 interface CreateClassroomFormProps {
-  onSuccess: () => void
+  onSuccess: (classroomId: number) => void
   onCancel: () => void
 }
 
@@ -68,10 +68,10 @@ export default function CreateClassroomForm({ onSuccess, onCancel }: CreateClass
         name: name.trim(),
         description: description.trim() || undefined
       }
-      await createClassroom(request)
+      const classroom = await createClassroom(request)
       setName('')
       setDescription('')
-      onSuccess()
+      onSuccess(classroom.id)
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to create classroom. Please try again.'
       setError(message)

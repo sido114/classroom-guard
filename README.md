@@ -215,6 +215,40 @@ npm run lint                  # Linting
 npm run build                 # Build verification
 ```
 
+### E2E Tests (Full Stack)
+
+End-to-end tests use Playwright to test the complete application flow:
+
+```bash
+# Run E2E tests (automated script)
+bash test-e2e.sh
+
+# Or manually:
+# 1. Start backend
+cd backend && ./mvnw quarkus:dev
+
+# 2. Start frontend (in another terminal)
+cd frontend && npm run dev
+
+# 3. Run Playwright tests (in another terminal)
+cd frontend && npm run test:e2e
+
+# Run with UI for debugging
+npm run test:e2e:ui
+
+# Run in headed mode (see browser)
+npm run test:e2e:headed
+```
+
+**E2E Test Coverage:**
+- Navigation between pages
+- Classroom creation flow
+- URL addition and validation
+- Error handling
+- Empty states
+
+**Note:** E2E tests run sequentially (not in parallel) to avoid database conflicts. They use the same database as the backend dev server.
+
 ### Pre-commit Hooks
 
 Set up Git hooks to run checks before every commit:
@@ -238,16 +272,24 @@ git commit --no-verify
 The project uses GitHub Actions for continuous integration:
 
 **On every push/PR:**
-- Backend: Builds and runs all tests with Maven
-- Frontend: Type checks, lints, and builds with npm
+1. **Backend Job:** Builds and runs all unit tests with Maven
+2. **Frontend Job:** Type checks, lints, and builds with npm
+3. **E2E Job:** Runs full-stack Playwright tests (depends on backend + frontend passing)
 
 **Pipeline configuration:** `.github/workflows/ci.yml`
 
-Both jobs run in parallel. The pipeline fails if either backend tests or frontend build fails.
+The E2E job:
+- Starts backend with Quarkus dev mode
+- Builds and starts frontend production server
+- Waits for services to be ready
+- Runs Playwright tests
+- Uploads test reports as artifacts (available for 7 days)
+
+All jobs must pass for the pipeline to succeed.
 
 ### Integration Testing
 
-Currently, integration tests are manual. To test the full stack:
+The E2E tests provide automated integration testing of the full stack. For manual testing:
 
 ```bash
 # Start all services
@@ -262,8 +304,6 @@ open http://localhost:3000
 # Stop services
 docker-compose down
 ```
-
-**Future:** Automated E2E tests with Playwright/Cypress will be added in a future phase.
 
 ## Project Guidelines
 

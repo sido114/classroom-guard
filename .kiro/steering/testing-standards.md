@@ -12,6 +12,15 @@
 - Do not move forward until ALL tests pass
 - If bash commands fail with exit code -1, use getDiagnostics tool instead
 
+### Rule #1b: E2E Tests MUST Be Green Before Completion
+- **AFTER completing all tasks in a spec, ALWAYS run E2E tests**
+- **Run: `bash test-e2e.sh` from project root**
+- **E2E tests verify the full stack integration (backend + frontend + database)**
+- **If E2E tests fail, FIX THE CODE before marking work as complete**
+- **NEVER mark a spec as done if E2E tests are failing**
+- E2E tests are the final gate before pushing to GitHub
+- If services are already running, the script will detect and use them
+
 ### Rule #2: Fix Tests Properly - NO RETRIES WITH DIFFERENT COMMANDS
 - When tests fail, FIX THE CODE, don't try different commands
 - Read the actual error message from Maven output or getDiagnostics
@@ -162,6 +171,44 @@ docker-compose down
 3. Fix the code, not the test (usually)
 4. Re-run to confirm
 5. Commit only when green
+
+## E2E Testing Workflow
+
+### When to Run E2E Tests
+- **REQUIRED:** After completing all tasks in a spec
+- **REQUIRED:** Before marking work as complete
+- **REQUIRED:** Before pushing to GitHub
+- Optional: During development to verify integration
+
+### Running E2E Tests
+```bash
+# Automated script (recommended)
+bash test-e2e.sh
+
+# Manual approach
+# Terminal 1: Start backend
+cd backend && ./mvnw quarkus:dev
+
+# Terminal 2: Start frontend
+cd frontend && npm run dev
+
+# Terminal 3: Run tests
+cd frontend && npm run test:e2e
+```
+
+### E2E Test Expectations
+- Tests run sequentially (not parallel) to avoid database conflicts
+- Tests use unique timestamps to avoid data collisions
+- Tests verify full user flows, not just API responses
+- Tests should pass consistently (not flaky)
+- If tests fail, fix the code, not the tests
+
+### E2E Test Coverage
+- Navigation between pages
+- Form submissions and validation
+- Error handling
+- Empty states
+- Data persistence across pages
 
 ## Continuous Testing
 - Run tests before every commit

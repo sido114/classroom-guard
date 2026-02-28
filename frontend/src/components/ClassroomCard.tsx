@@ -23,6 +23,7 @@ export default function ClassroomCard({ classroom, onClick }: ClassroomCardProps
 
   return (
     <div
+      data-testid="classroom-card"
       onClick={onClick}
       className="border rounded-lg p-4 cursor-pointer hover:shadow-lg transition-shadow bg-white"
     >

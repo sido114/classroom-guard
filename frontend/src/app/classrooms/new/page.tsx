@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation'
 export default function NewClassroomPage() {
   const router = useRouter()
 
-  const handleSuccess = () => {
-    router.push('/classrooms')
+  const handleSuccess = (classroomId: number) => {
+    router.push(`/classrooms/${classroomId}`)
   }
 
   const handleCancel = () => {

@@ -6,7 +6,7 @@ This implementation plan breaks down the Classroom URL Management feature into d
 
 ## Tasks
 
-- [ ] 1. Set up backend database entities and schema
+- [x] 1. Set up backend database entities and schema
   - [x] 1.1 Create Classroom entity with JPA annotations
     - Define Classroom entity with id, name, description, createdAt fields
     - Add OneToMany relationship to ClassroomUrl
@@ -25,7 +25,7 @@ This implementation plan breaks down the Classroom URL Management feature into d
     - Check foreign key cascade behavior
     - _Requirements: 8.1, 8.3_
 
-- [ ] 2. Implement URL validation and normalization utility
+- [x] 2. Implement URL validation and normalization utility
   - [x] 2.1 Create UrlValidator object with validation and normalization functions
     - Implement isValid() to check domain format using regex
     - Implement normalize() to add protocol and lowercase URL
@@ -39,7 +39,7 @@ This implementation plan breaks down the Classroom URL Management feature into d
     - Test edge cases: maximum length URLs, URLs with ports
     - _Requirements: 6.1, 6.2, 6.4, 6.5_
 
-- [ ] 3. Implement backend DTOs and request/response models
+- [x] 3. Implement backend DTOs and request/response models
   - [x] 3.1 Create request and response data classes
     - Define CreateClassroomRequest with name and description
     - Define AddUrlRequest with url field
@@ -84,7 +84,7 @@ This implementation plan breaks down the Classroom URL Management feature into d
     - Return 400 with error message on validation or duplicate
     - _Requirements: 4.2, 4.3, 4.4, 4.5, 4.6, 6.1, 6.2_
 
-- [ ] 5. Implement backend unit tests
+- [x] 5. Implement backend unit tests
   - [x] 5.1 Write unit tests for POST /api/classrooms
     - Test successful creation with valid name and description
     - Test creation with name at exactly 100 characters
@@ -100,13 +100,13 @@ This implementation plan breaks down the Classroom URL Management feature into d
     - Test URL count accuracy
     - _Requirements: 2.2, 2.3_
   
-  - [ ] 5.3 Write unit tests for GET /api/classrooms/{id}
+  - [x] 5.3 Write unit tests for GET /api/classrooms/{id}
     - Test successful retrieval with no URLs
     - Test successful retrieval with multiple URLs
     - Test 404 error for non-existent classroom
     - _Requirements: 3.2, 3.3_
   
-  - [ ] 5.4 Write unit tests for POST /api/classrooms/{id}/urls
+  - [x] 5.4 Write unit tests for POST /api/classrooms/{id}/urls
     - Test successful URL addition with various formats
     - Test 400 error when URL is empty
     - Test 400 error when URL format is invalid
@@ -188,10 +188,10 @@ This implementation plan breaks down the Classroom URL Management feature into d
     - Generate equivalent URLs (different cases, protocols)
     - Verify normalized to same format and treated as duplicates
 
-- [ ] 7. Checkpoint - Ensure backend tests pass
-  - Ensure all tests pass, ask the user if questions arise.
+- [x] 7. Checkpoint - Ensure backend tests pass
+  - Backend tests are green
 
-- [ ] 8. Set up frontend TypeScript interfaces and API client
+- [x] 8. Set up frontend TypeScript interfaces and API client
   - [x] 8.1 Create TypeScript interfaces for data models
     - Define Classroom, ClassroomDetail, ClassroomUrl interfaces
     - Define CreateClassroomRequest, AddUrlRequest interfaces
@@ -207,7 +207,7 @@ This implementation plan breaks down the Classroom URL Management feature into d
     - Add proper error handling and type safety
     - _Requirements: 1.2, 2.2, 3.2, 4.3_
 
-- [ ] 9. Implement frontend classroom list page
+- [x] 9. Implement frontend classroom list page
   - [x] 9.1 Create /app/classrooms/page.tsx for classroom list
     - Fetch classrooms on component mount
     - Display loading state while fetching
@@ -227,7 +227,7 @@ This implementation plan breaks down the Classroom URL Management feature into d
     - Use teacher-friendly styling (clear, non-technical)
     - _Requirements: 2.3, 2.5, 5.1, 5.3_
 
-- [ ] 10. Implement frontend create classroom functionality
+- [x] 10. Implement frontend create classroom functionality
   - [x] 10.1 Create classroom creation form component
     - Add name input field (required, max 100 chars)
     - Add description textarea (optional, max 500 chars)
@@ -245,9 +245,48 @@ This implementation plan breaks down the Classroom URL Management feature into d
     - Handle form submission and API errors
     - _Requirements: 1.6, 5.2_
 
-- [ ] 11. Implement frontend classroom detail page
+- [x] 11. Implement frontend classroom detail page
   - [x] 11.1 Create /app/classrooms/[id]/page.tsx for classroom details
     - Fetch classroom detail on component mount
+    - Display loading state while fetching
+    - Display classroom name and description in header
+    - Display back button to return to list
+    - Handle 404 error if classroom not found
+    - _Requirements: 3.1, 3.2, 3.5_
+  
+  - [x] 11.2 Create URL list component for classroom detail
+    - Display all URLs in list format
+    - Show URL, creation date for each URL
+    - Display empty state when no URLs exist
+    - Use clear, readable styling
+    - _Requirements: 3.3, 3.4, 5.1, 5.3_
+  
+  - [x] 11.3 Create add URL form component
+    - Add URL input field (required)
+    - Add submit button with loading state
+    - Implement client-side validation (not empty)
+    - Display validation errors inline
+    - Display success/error toast notifications
+    - Clear input on successful addition
+    - Update URL list immediately after addition (no refresh)
+    - _Requirements: 4.1, 4.2, 4.4, 4.7, 5.2_
+
+- [x] 12. Implement frontend styling and UI polish
+  - [x] 12.1 Apply consistent styling across all components
+    - Use consistent color scheme (teacher-friendly, professional)
+    - Apply consistent typography (readable, clear)
+    - Add icons alongside text for visual clarity
+    - Ensure responsive design (desktop, tablet, mobile)
+    - Add loading spinners and skeleton screens
+    - _Requirements: 5.1, 5.3, 5.4, 5.5, 5.6_
+  
+  - [x] 12.2 Implement error handling and user feedback
+    - Add toast notification system for success/error messages
+    - Display user-friendly error messages (translate backend errors)
+    - Add retry mechanisms for failed operations
+    - Preserve form data when validation fails
+    - Clear error states when user corrects input
+    - _Requirements: 5.2_
     - Display loading state while fetching
     - Display classroom name and description in header
     - Display back button to return to list
@@ -304,29 +343,30 @@ This implementation plan breaks down the Classroom URL Management feature into d
     - **Validates: Requirements 4.7**
     - Add URL via API, verify appears in frontend list without refresh
 
-- [ ] 14. Final checkpoint - Integration testing and verification
-  - [ ] 14.1 Verify end-to-end flows
+- [x] 14. Final checkpoint - Integration testing and verification
+  - [x] 14.1 Verify end-to-end flows
     - Test create classroom → appears in list → click to view details
     - Test add URL → appears in classroom detail → verify in database
     - Test all error scenarios (validation, duplicates, not found)
     - Test responsive design on different screen sizes
     - _Requirements: All_
   
-  - [ ] 14.2 Verify database constraints and behavior
+  - [x] 14.2 Verify database constraints and behavior
     - Test unique constraint on (classroom_id, url)
     - Test cascade delete (delete classroom deletes URLs)
     - Test foreign key constraints
     - _Requirements: 4.5, 8.3_
   
-  - [ ] 14.3 Run all tests and verify TypeScript compilation
+  - [x] 14.3 Run all tests and verify TypeScript compilation
     - Run backend unit tests: `cd backend && ./mvnw test`
     - Run backend property tests (if implemented)
     - Run frontend type check: `cd frontend && npx tsc --noEmit`
     - Verify no compilation errors or test failures
     - _Requirements: All_
   
-  - [ ] 14.4 Final checkpoint
-    - Ensure all tests pass, ask the user if questions arise.
+  - [x] 14.4 Final checkpoint - Run E2E tests
+    - Run E2E tests: `bash test-e2e.sh`
+    - Ensure all E2E tests pass before marking spec complete
 
 ## Notes
 

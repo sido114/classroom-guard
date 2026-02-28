@@ -23,9 +23,11 @@ When working on a spec (in `.kiro/specs/feature-name/`):
 
 ### 4. Test Everything
 After implementation:
-- Backend: Check diagnostics, run tests if possible
-- Frontend: Check TypeScript compilation
+- Backend: Check diagnostics, run `./mvnw test` (cwd: backend)
+- Frontend: Check TypeScript compilation with getDiagnostics
+- **E2E: Run `bash test-e2e.sh` after completing ALL tasks**
 - Report any errors immediately
+- **NEVER mark work as complete if E2E tests fail**
 
 ### 5. Keep It Minimal
 - Only implement what the task requires
